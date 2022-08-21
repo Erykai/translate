@@ -14,6 +14,10 @@ trait TraitTranslate
      * @var array
      */
     private array $wordsTranslate;
+    /**
+     * @var string
+     */
+    private string $nameFile;
 
     /**
      * @param object $data
@@ -25,18 +29,31 @@ trait TraitTranslate
         $this->setWords($data->nameDefault);
         $t = [];
         $i = 0;
+        if (count($this->wordsDefaults) > count($this->wordsTranslate)) {
+            foreach ($this->wordsDefaults as $key => $wordsDefault) {
+                if(empty($this->wordsTranslate[$key])){
+                    $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
+                    file_put_contents($file, $wordsDefault, FILE_APPEND);
+                }
+            };
+            $this->wordsTranslate = array_filter(file($this->fileTranslate()));
+
+        }
         foreach ($this->wordsDefaults as $wordsDefault) {
+            $wordsDefault = trim($wordsDefault);
+
+            $this->wordsTranslate[$i] = trim($this->wordsTranslate[$i]);
             if (!empty($this->getDynamic())) {
-                $key = trim(str_replace("**********", $this->getDynamic(), $wordsDefault));
+                $key = trim(str_replace("<#>", $this->getDynamic(), $wordsDefault));
                 if (empty($this->wordsTranslate[$i])) {
-                    $value = "Insert text '" . trim($wordsDefault) . " <&>' in /" . RESPONSE_TRANSLATE_PATH . "/" . $this->getLang() . ".php";
+                    $value = $wordsDefault;
                 } else {
-                    $value = trim(str_replace("**********", $this->getDynamic(), $this->wordsTranslate[$i]));
+                    $value = trim(str_replace("<#>", $this->getDynamic(), $this->wordsTranslate[$i]));
                 }
             } else {
-                $key = trim($wordsDefault);
+                $key = $wordsDefault;
                 if (empty($this->wordsTranslate[$i])) {
-                    $value = "Insert text '" . trim($wordsDefault) . " <&>' in /" . RESPONSE_TRANSLATE_PATH . "/" . $this->getLang() . ".php";
+                    $value = $wordsDefault;
                 } else {
                     $value = trim($this->wordsTranslate[$i]);
                 }
@@ -45,15 +62,22 @@ trait TraitTranslate
             $i++;
         }
         if (!empty($this->getDynamic())) {
-            $value = trim(str_replace($this->getDynamic(), "**********", $data->translate));
-            $translate = trim(str_replace("**********", $this->getDynamic(), $data->translate));
+            $value = trim(str_replace($this->getDynamic(), "<#>", $data->translate));
+            $translate = trim(str_replace("<#>", $this->getDynamic(), $data->translate));
             if (empty($t[$translate])) {
-                $data->translate = "Create in 'en' /" . RESPONSE_TRANSLATE_PATH . "/_default.php and in '" . $this->getLang() . "' /" . RESPONSE_TRANSLATE_PATH . "/" . $this->getLang() . ".php insert text -> '$value <&>'";
+                $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
+                file_put_contents($file, $value . PHP_EOL, FILE_APPEND);
+                $file = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
+                file_put_contents($file, $value . PHP_EOL, FILE_APPEND);
+                $data->translate = $value;
                 return $data;
             }
         }
         if (empty($t[$data->translate])) {
-            $data->translate = "Create in 'en' /" . RESPONSE_TRANSLATE_PATH . "/_default.php and in '" . $this->getLang() . "' /" . RESPONSE_TRANSLATE_PATH . "/" . $this->getLang() . ".php insert text -> '$data->translate <&>'";
+            $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
+            file_put_contents($file, $data->translate . PHP_EOL, FILE_APPEND);
+            $file = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
+            file_put_contents($file, $data->translate . PHP_EOL, FILE_APPEND);
             return $data;
         }
 
@@ -65,17 +89,14 @@ trait TraitTranslate
     /**
      *
      */
-    private function setWords(string $nameDefault)
+    private function setWords(string $nameFile)
     {
         $this->createDir();
-        $default = $nameDefault . "Default";
-        $translate = $nameDefault . "Translate";
-        require_once $this->fileDefault($nameDefault);
-        require_once $this->fileTranslate($nameDefault);
-
-
-        $this->wordsDefaults = array_filter(explode("<&>", trim($$default)));
-        $this->wordsTranslate = array_filter(explode("<&>", trim($$translate)));
+        $this->nameFile = $nameFile;
+        $default = file($this->fileDefault());
+        $translate = file($this->fileTranslate());
+        $this->wordsDefaults = array_filter($default);
+        $this->wordsTranslate = array_filter($translate);
     }
 
     /**
@@ -87,48 +108,39 @@ trait TraitTranslate
         if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
         }
+        $path = $this->getPath() . "/" . $this->getLang();
+        if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
+        }
+
+        $path = $this->getPath() . "/_default";
+        if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
+        }
     }
 
     /**
      * @return string
      */
-    private function fileDefault(string $nameDefault)
+    private function fileDefault()
     {
-        $fileDefault = $this->getPath() . "/_default.php";
-        $default = $nameDefault . 'Default';
-
+        $fileDefault = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
         if (!is_file($fileDefault)) {
-            $dataDefault = '<?php
-$' . $nameDefault . 'Default = "";';
+            $dataDefault = '';
             file_put_contents($fileDefault, $dataDefault);
-        }else{
-            if (!strpos(file_get_contents($fileDefault), $default)) {
-                $dataDefault = '
-$' . $nameDefault . 'Translate = "";';
-                file_put_contents($fileDefault, $dataDefault, FILE_APPEND);
-            }
         }
-
         return $fileDefault;
     }
 
     /**
      * @return string
      */
-    private function fileTranslate(string $nameDefault)
+    private function fileTranslate()
     {
-        $fileTranslate = $this->getPath() . "/" . $this->getLang() . ".php";
-        $translate = $nameDefault . 'Translate';
+        $fileDefault = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
+        $fileTranslate = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
         if (!is_file($fileTranslate)) {
-            $dataTranslate = '<?php
-$' . $nameDefault . 'Translate = "";';
-            file_put_contents($fileTranslate, $dataTranslate);
-        }else{
-            if (!strpos(file_get_contents($fileTranslate), $translate)) {
-                $dataTranslate = '
-$' . $nameDefault . 'Translate = "";';
-                file_put_contents($fileTranslate, $dataTranslate, FILE_APPEND);
-            }
+            copy($fileDefault, $fileTranslate);
         }
         return $fileTranslate;
     }

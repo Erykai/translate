@@ -4,7 +4,7 @@ namespace Erykai\Translate;
 
 class Resource
 {
-use TraitTranslate;
+    use TraitTranslate;
     /**
      * @var string
      */

@@ -33,4 +33,9 @@ class Translate extends Resource
         $this->setResponse($this->translate($this->getResponse()));
         return $this;
     }
+
+    public function response()
+    {
+        return $this->getResponse();
+    }
 }
