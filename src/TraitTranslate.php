@@ -155,30 +155,34 @@ trait TraitTranslate
         if (empty(RESPONSE_TRANSLATE_API_KEY)) {
             return $text;
         }
-        $curl = curl_init();
+        $url = "https://script.google.com/macros/s/".RESPONSE_TRANSLATE_API_KEY."/exec";
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_POSTFIELDS => http_build_query([
+                "source" => "en",
+                "target" => $this->getLang(),
+                "text" => $text
+            ])
+        ]);
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://script.google.com/macros/s/' . RESPONSE_TRANSLATE_API_KEY . '/exec',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array('source' => 'en', 'target' => $this->getLang(), 'text' => $text),
-        ));
 
-        $response = curl_exec($curl);
-        curl_close($curl);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+        if (!$response) {
+            return $text;
+        }
         $data = json_decode($response);
-        if ($data["status"] === "success") {
+        if ($data->status === "success") {
             if ($route === "route") {
-                return $this->route($data["translate"]);
+                return $this->route($data->translate);
             }
-            return $data["translate"];
+            return $data->translate;
         }
         return $text;
+
     }
 
     /**
