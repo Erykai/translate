@@ -31,7 +31,7 @@ trait TraitTranslate
         $i = 0;
         if (count($this->wordsDefaults) > count($this->wordsTranslate)) {
             foreach ($this->wordsDefaults as $key => $wordsDefault) {
-                if(empty($this->wordsTranslate[$key])){
+                if (empty($this->wordsTranslate[$key])) {
                     $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
                     file_put_contents($file, $wordsDefault, FILE_APPEND);
                 }
@@ -66,7 +66,7 @@ trait TraitTranslate
             $translate = trim(str_replace("<#>", $this->getDynamic(), $data->translate));
             if (empty($t[$translate])) {
                 $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
-                file_put_contents($file, $value . PHP_EOL, FILE_APPEND);
+                file_put_contents($file, $this->translateGoogle($value, $this->nameFile) . PHP_EOL, FILE_APPEND);
                 $file = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
                 file_put_contents($file, $value . PHP_EOL, FILE_APPEND);
                 $data->translate = $value;
@@ -75,7 +75,7 @@ trait TraitTranslate
         }
         if (empty($t[$data->translate])) {
             $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
-            file_put_contents($file, $data->translate . PHP_EOL, FILE_APPEND);
+            file_put_contents($file, $this->translateGoogle($data->translate, $this->nameFile) . PHP_EOL, FILE_APPEND);
             $file = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
             file_put_contents($file, $data->translate . PHP_EOL, FILE_APPEND);
             return $data;
@@ -89,7 +89,7 @@ trait TraitTranslate
     /**
      *
      */
-    private function setWords(string $nameFile)
+    private function setWords(string $nameFile): void
     {
         $this->createDir();
         $this->nameFile = $nameFile;
@@ -122,7 +122,7 @@ trait TraitTranslate
     /**
      * @return string
      */
-    private function fileDefault()
+    private function fileDefault(): string
     {
         $fileDefault = $this->getPath() . "/_default/" . $this->nameFile . ".translate";
         if (!is_file($fileDefault)) {
@@ -143,5 +143,61 @@ trait TraitTranslate
             copy($fileDefault, $fileTranslate);
         }
         return $fileTranslate;
+    }
+
+    /**
+     * @param string $text
+     * @param $route
+     * @return mixed
+     */
+    private function translateGoogle(string $text, $route): mixed
+    {
+        if (empty(RESPONSE_TRANSLATE_API_KEY)) {
+            return $text;
+        }
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://script.google.com/macros/s/' . RESPONSE_TRANSLATE_API_KEY . '/exec',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => array('source' => 'en', 'target' => $this->getLang(), 'text' => $text),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $data = json_decode($response);
+        if ($data["status"] === "success") {
+            if ($route === "route") {
+                return $this->route($data["translate"]);
+            }
+            return $data["translate"];
+        }
+        return $text;
+    }
+
+    /**
+     * @param string $text
+     * @return string
+     */
+    private function route(string $text): string
+    {
+        $characters = array(
+            'Š' => 'S', 'š' => 's', 'Đ' => 'Dj', 'đ' => 'dj', 'Ž' => 'Z', 'ž' => 'z', 'Č' => 'C', 'č' => 'c', 'Ć' => 'C', 'ć' => 'c',
+            'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
+            'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O',
+            'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss',
+            'à' => 'a', 'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e',
+            'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o',
+            'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b',
+            'ÿ' => 'y', 'Ŕ' => 'R', 'ŕ' => 'r', ' ' => ''
+        );
+        $stripped = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $text);
+        return strtolower(strtr($stripped, $characters));
     }
 }
