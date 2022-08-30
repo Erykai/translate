@@ -6,7 +6,7 @@ Component for all language translation, system messages and routes
 Composer:
 
 ```bash
-"erykai/translate": "1.0.*"
+"erykai/translate": "2.0.*"
 ```
 
 Terminal
@@ -18,16 +18,18 @@ composer require erykai/translate
 Create config.php
 
 ```php
-const RESPONSE_TRANSLATE_PATH = 'translate';
-//ACCESS https://script.google.com
-//create new project
-//insert script: ./script.gs
-//save and new deploy all users
-const RESPONSE_TRANSLATE_API_KEY = 'AKfycbz5DyirjUO6U_TQqkRSgLavLbThsOolNxz2bhj6_2c_RNHKkXLvGsxZMg0Bom_UzlI_';
-const RESPONSE_TRANSLATE_API_URL = 'https://translate.erykia.com';
+const TRANSLATE_PATH = 'translate';
+const TRANSLATE_DEFAULT = 'en';
+const TRANSLATE_API_URL = 'https://translate.erykia.com';
+const TRANSLATE_API_KEY = 'AKfycbz5DyirjUO6U_TQqkRSgLavLbThsOolNxz2bhj6_2c_RNHKkXLvGsxZMg0Bom_UzlI_';
+//IMPORTANT KEY IS VALID IF ERROR:
+/*
+contact webav.com.br@gmail.com ou whatsapp https://wa.me/+5564992367973 and solicit new key free
+*/
 ```
 
-Translate define language
+Translate define language ->target("es") ou ->target() default "en"
+
 
 ```php
 use Erykai\Translate\Translate;
@@ -37,42 +39,18 @@ require_once "vendor/autoload.php";
 
 $translate = new Translate();
 $data = new stdClass();
-$data->nameDefault = "route";
-$data->translate = "/users";
-echo $translate->data($data)->lang("en")->getResponse()->translate;
-```
-
-Translate language browser
-
-```php
-use Erykai\Translate\Translate;
-
-require_once "test/config.php";
-require_once "vendor/autoload.php";
-
-$translate = new Translate();
-$data = new stdClass();
-$data->nameDefault = "message";
-$data->translate = "Hello Word";
-echo $translate->data($data)->lang()->getResponse()->translate;
-```
-
-Translate define language and dynamic text
-
-```php
-use Erykai\Translate\Translate;
-
-require_once "test/config.php";
-require_once "vendor/autoload.php";
-
-$translate = new Translate();
-$data = new stdClass();
-$data->nameDefault = "route";
-$data->translate = "/users/{id}/{slug}";
+$data->file = "route";
+$data->text = "/send/{id}/{slug}";
 $data->dynamic = "/{id}/{slug}";
-echo $translate->data($data)->lang()->getResponse()->translate;
+// send object
+// require file $data->file = "message" save file message.translate
+// require text language "en"
+// optional dynamic data not translate exemple:
+// email webav.com.br@gmail invalid
+// $data->dynamic = "webav.com.br@gmail"
+// translate pt-BR email webav.com.br@gmail invalido
+echo $translate->data($data)->target("es")->response();
 ```
-
 
 ## Contribution
 

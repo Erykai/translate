@@ -1,183 +1,85 @@
 <?php
 
 namespace Erykai\Translate;
+
+use JsonSchema\Exception\RuntimeException;
+
 /**
- * translate return data in json, array and object
+ *
  */
 trait TraitTranslate
 {
     /**
-     * @var array
+     * @param string $dir
+     * create dir
      */
-    private array $wordsDefaults;
-    /**
-     * @var array
-     */
-    private array $wordsTranslate;
-    /**
-     * @var string
-     */
-    private string $nameFile;
-
-    /**
-     * @param object $data
-     * @return object
-     */
-    protected function translate(object $data): object
+    private function create(string $dir): void
     {
-
-        $this->setWords($data->nameDefault);
-        $t = [];
-        $i = 0;
-        if (count($this->wordsDefaults) > count($this->wordsTranslate)) {
-            foreach ($this->wordsDefaults as $key => $wordsDefault) {
-                if (empty($this->wordsTranslate[$key])) {
-                    $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
-                    file_put_contents($file, $wordsDefault, FILE_APPEND);
-                }
-            };
-            $this->wordsTranslate = array_filter(file($this->fileTranslate()));
-
-        }
-        foreach ($this->wordsDefaults as $wordsDefault) {
-            $wordsDefault = trim($wordsDefault);
-
-            $this->wordsTranslate[$i] = trim($this->wordsTranslate[$i]);
-            if (!empty($this->getDynamic())) {
-                $key = trim(str_replace("<#>", $this->getDynamic(), $wordsDefault));
-                if (empty($this->wordsTranslate[$i])) {
-                    $value = $wordsDefault;
-                } else {
-                    $value = trim(str_replace("<#>", $this->getDynamic(), $this->wordsTranslate[$i]));
-                }
-            } else {
-                $key = $wordsDefault;
-                if (empty($this->wordsTranslate[$i])) {
-                    $value = $wordsDefault;
-                } else {
-                    $value = trim($this->wordsTranslate[$i]);
-                }
-            }
-            $t[$key] = $value;
-            $i++;
-        }
-        if (!empty($this->getDynamic())) {
-            $value = trim(str_replace($this->getDynamic(), "<#>", $data->translate));
-            $translate = trim(str_replace("<#>", $this->getDynamic(), $data->translate));
-            if (empty($t[$translate])) {
-                if ($this->getLang() != "en") {
-                    $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
-                    file_put_contents($file, $this->translateErykia($value, $this->nameFile) . PHP_EOL, FILE_APPEND);
-                }
-                $file = $this->getPath() . "/en/" . $this->nameFile . ".translate";
-                file_put_contents($file, $value . PHP_EOL, FILE_APPEND);
-                $data->translate = $value;
-                return $data;
-            }
-        }
-        if (empty($t[$data->translate])) {
-            if ($this->getLang() != "en") {
-                $file = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
-                file_put_contents($file, $this->translateErykia($data->translate, $this->nameFile) . PHP_EOL, FILE_APPEND);
-            }
-            $file = $this->getPath() . "/en/" . $this->nameFile . ".translate";
-            file_put_contents($file, $data->translate . PHP_EOL, FILE_APPEND);
-            return $data;
-        }
-
-        $data->translate = $t[$data->translate];
-
-        return $data;
-    }
-
-    /**
-     *
-     */
-    private function setWords(string $nameFile): void
-    {
-        $this->createDir();
-        $this->nameFile = $nameFile;
-        $default = file($this->fileDefault());
-        $translate = file($this->fileTranslate());
-        $this->wordsDefaults = array_filter($default);
-        $this->wordsTranslate = array_filter($translate);
-    }
-
-    /**
-     *
-     */
-    private function createDir(): void
-    {
-        $path = $this->getPath();
-        if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
-        }
-        if ($this->getLang() != "en") {
-            $path = $this->getPath() . "/" . $this->getLang();
-            if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
-                throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
-            }
-        }
-
-        $path = $this->getPath() . "/en";
-        if (!is_dir($path) && !mkdir($path, 0755) && !is_dir($path)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $path));
+        if (!is_dir($dir) && !mkdir($dir, 0755) && !is_dir($dir)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
     }
 
     /**
-     * @return string
+     * create dir defaults
      */
-    private function fileDefault(): string
+    protected function dir(): void
     {
-        $fileDefault = $this->getPath() . "/en/" . $this->nameFile . ".translate";
-        if (!is_file($fileDefault)) {
-            $dataDefault = '';
-            file_put_contents($fileDefault, $dataDefault);
-        }
-        return $fileDefault;
+        $this->create($this->getPath());
+        $this->create("{$this->getPath()}/{$this->getSource()}");
+        $this->create("{$this->getPath()}/{$this->getTarget()}");
     }
 
     /**
-     * @return string
+     * create files .translate
      */
-    private function fileTranslate()
+    protected function file(): void
     {
-        $fileDefault = $this->getPath() . "/en/" . $this->nameFile . ".translate";
-        if ($this->getLang() != "en") {
-            $fileTranslate = $this->getPath() . "/" . $this->getLang() . "/" . $this->nameFile . ".translate";
+        $this->setSourceFile("{$this->getPath()}/{$this->getSource()}/{$this->getData()->file}.translate");
+        $this->setTargetFile("{$this->getPath()}/{$this->getTarget()}/{$this->getData()->file}.translate");
+
+        if (!is_file($this->getSourceFile())) {
+            file_put_contents($this->getSourceFile(), $this->getData()->text . PHP_EOL);
+        } else if(!in_array($this->getData()->text . PHP_EOL, array_filter(file($this->getSourceFile())), true)){
+            file_put_contents($this->getSourceFile(), $this->getData()->text . PHP_EOL, FILE_APPEND);
         }
-        if ($this->getLang() != "en") {
-            if (!is_file($fileTranslate)) {
-                file_put_contents($fileTranslate,$this->translateErykia(file_get_contents($fileDefault), $this->nameFile));
-                //copy($fileDefault, $fileTranslate);
+
+        if (!is_file($this->getTargetFile())) {
+            file_put_contents($this->getTargetFile(), $this->translate(file_get_contents($this->getSourceFile())). PHP_EOL);
+        } else {
+            $source = array_filter(file($this->getSourceFile()));
+            $target = array_filter(file($this->getTargetFile()));
+            $result = array_diff_key($source, $target);
+            $implode = implode("", $result);
+            if(count(array_filter(file($this->getSourceFile()))) > count(array_filter(file($this->getTargetFile())))){
+                file_put_contents($this->getTargetFile(), $this->translate($implode) . PHP_EOL, FILE_APPEND);
             }
-            return $fileTranslate;
+
         }
-        return $fileDefault;
+
     }
 
     /**
      * @param string $text
-     * @param $route
      * @return mixed
+     * send server translate
      */
-    private function translateErykia(string $text, $route): mixed
+    private function translate(string $text): mixed
     {
-        if (empty(RESPONSE_TRANSLATE_API_KEY)) {
+        if (empty(TRANSLATE_API_KEY)) {
             return $text;
         }
-        $url = RESPONSE_TRANSLATE_API_URL;
+        $url = TRANSLATE_API_URL;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_FOLLOWLOCATION => 1,
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_POSTFIELDS => http_build_query([
-                "key" => RESPONSE_TRANSLATE_API_KEY,
+                "key" => TRANSLATE_API_KEY,
                 "source" => "en",
-                "target" => $this->getLang(),
+                "target" => $this->getTarget(),
                 "text" => $text,
-                "route" => $route ?? ""
+                "route" => $this->getData()->file
             ])
         ]);
         $response = curl_exec($ch);
@@ -190,6 +92,6 @@ trait TraitTranslate
             return $data->translate;
         }
         return $text;
-
     }
+
 }

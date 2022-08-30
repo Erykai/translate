@@ -2,40 +2,57 @@
 
 namespace Erykai\Translate;
 
+/**
+ * Class translate remote all languages
+ */
 class Translate extends Resource
 {
+    /**
+     * @param object $data
+     * @return $this
+     */
     public function data(object $data): static
     {
-        if(empty($data->nameDefault))
-        {
-            die('to use the Translate component send an object that contains the example attribute $data->nameDefault = "route";');
+        if(!isset($data->dynamic)){
+            $data->dynamic = "";
         }
-        if(empty($data->translate))
-        {
-            die('to use the Translate component send an object that contains the example attribute $data->translate = "Hello Word";');
-        }
-        $this->setDynamic();
-        if(!empty($data->dynamic)){
-            $this->setDynamic($data->dynamic);
-            unset($data->dynamic);
-        }
-        $this->setResponse($data);
+        $this->setDynamic($data->dynamic);
+        $data->text = str_replace($this->getDynamic(),"<#>", $data->text);
+
+        $this->setData($data);
         return $this;
     }
 
     /**
-     * @param string|null $lang
+     * @param string $lang
      * @return $this
+     * detect language if not declare in target or const TRANSLATE_DEFAULT
      */
-    public function lang(?string $lang = null): static
+    public function target(string $lang): static
     {
-        $this->setLang($lang);
-        $this->setResponse($this->translate($this->getResponse()));
+        $this->setTarget('en');
+        if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+            [$l] = explode(",", $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+            $this->setTarget($l);
+        }
+        if(TRANSLATE_DEFAULT){
+            $this->setTarget(TRANSLATE_DEFAULT);
+        }
+        if ($lang) {
+            $this->setTarget($lang);
+        }
+        $this->dir();
+        $this->file();
+        $this->setResponse();
         return $this;
     }
 
-    public function response()
+    /**
+     * @return string
+     */
+    public function response(): string
     {
         return $this->getResponse();
     }
+
 }

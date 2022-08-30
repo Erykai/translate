@@ -1,8 +1,9 @@
 <?php
-const RESPONSE_TRANSLATE_PATH = 'translate';
-//ACCESS https://script.google.com
-//create new project
-//insert script: ./script.gs
-//save and new deploy all users
-const RESPONSE_TRANSLATE_API_KEY = 'AKfycbz5DyirjUO6U_TQqkRSgLavLbThsOolNxz2bhj6_2c_RNHKkXLvGsxZMg0Bom_UzlI_';
-const RESPONSE_TRANSLATE_API_URL = 'https://translate.erykia.com';
+const TRANSLATE_PATH = 'translate';
+const TRANSLATE_DEFAULT = 'en';
+const TRANSLATE_API_URL = 'https://translate.erykia.com';
+const TRANSLATE_API_KEY = 'AKfycbz5DyirjUO6U_TQqkRSgLavLbThsOolNxz2bhj6_2c_RNHKkXLvGsxZMg0Bom_UzlI_';
+//IMPORTANT KEY IS VALID IF ERROR:
+/*
+contact webav.com.br@gmail.com ou whatsapp https://wa.me/+5564992367973 and solicit new key free
+*/
