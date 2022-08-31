@@ -38,9 +38,9 @@ class Resource
      */
     private string $targetFile;
     /**
-     * @var string
+     * @var object
      */
-    private string $response;
+    private object $response;
 
     /**
      *
@@ -166,9 +166,9 @@ class Resource
     }
 
     /**
-     * @return string
+     * @return object
      */
-    protected function getResponse(): string
+    protected function getResponse(): object
     {
         return $this->response;
     }
@@ -181,7 +181,9 @@ class Resource
         $source =  file($this->getSourceFile());
         $target =  file($this->getTargetFile());
         $key = array_search($this->getData()->text . PHP_EOL, $source, true);
-        $this->response = str_replace("<#>", $this->getDynamic(), $target[$key]);
+        $translate = new \stdClass();
+        $translate->translate = trim(str_replace("<#>", $this->getDynamic(), $target[$key]));
+        $this->response = $translate;
     }
 
 

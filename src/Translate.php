@@ -24,11 +24,11 @@ class Translate extends Resource
     }
 
     /**
-     * @param string $lang
+     * @param ?string $lang
      * @return $this
      * detect language if not declare in target or const TRANSLATE_DEFAULT
      */
-    public function target(string $lang): static
+    public function target(?string $lang = null): static
     {
         $this->setTarget('en');
         if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -48,9 +48,9 @@ class Translate extends Resource
     }
 
     /**
-     * @return string
+     * @return object
      */
-    public function response(): string
+    public function response(): object
     {
         return $this->getResponse();
     }
