@@ -49,7 +49,7 @@ $data->dynamic = "/{id}/{slug}";
 // email webav.com.br@gmail invalid
 // $data->dynamic = "webav.com.br@gmail"
 // translate pt-BR email webav.com.br@gmail invalido
-echo $translate->data($data)->target("es")->response();
+echo $translate->data($data)->target("es")->response()->translate;
 ```
 
 ## Contribution
