@@ -66,9 +66,6 @@ trait TraitTranslate
      */
     private function translate(string $text): mixed
     {
-        if (empty(TRANSLATE_API_KEY)) {
-            return $text;
-        }
         $url = TRANSLATE_API_URL;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
