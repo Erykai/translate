@@ -10,4 +10,4 @@ $data = new stdClass();
 $data->file = "route";
 $data->text = "/send/{id}/{slug}";
 $data->dynamic = "/{id}/{slug}";
-echo $translate->data($data)->target("es")->response();
+print_r($package->data($data)->target("es")->response());

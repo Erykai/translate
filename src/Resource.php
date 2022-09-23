@@ -5,7 +5,7 @@ namespace Erykai\Translate;
 /**
  * class get and set
  */
-class Resource
+abstract class Resource
 {
     use TraitTranslate;
 
