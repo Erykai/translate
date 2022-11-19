@@ -30,6 +30,19 @@ class Translate extends Resource
      */
     public function target(?string $lang = null): static
     {
+        $this->lang($lang);
+        $this->dir();
+        $this->file();
+        $this->setResponse();
+        return $this;
+    }
+
+    /**
+     * @param string|null $lang
+     * @return string
+     */
+    public function lang(?string $lang = null): string
+    {
         $this->setTarget('en');
         if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             [$l] = explode(",", $_SERVER['HTTP_ACCEPT_LANGUAGE']);
@@ -41,10 +54,7 @@ class Translate extends Resource
         if ($lang) {
             $this->setTarget($lang);
         }
-        $this->dir();
-        $this->file();
-        $this->setResponse();
-        return $this;
+        return $this->getTarget();
     }
 
     /**

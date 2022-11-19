@@ -2,6 +2,8 @@
 
 namespace Erykai\Translate;
 
+use stdClass;
+
 /**
  * class get and set
  */
@@ -181,7 +183,7 @@ abstract class Resource
         $source =  file($this->getSourceFile());
         $target =  file($this->getTargetFile());
         $key = array_search($this->getData()->text . PHP_EOL, $source, true);
-        $translate = new \stdClass();
+        $translate = new stdClass();
         $translate->translate = trim(str_replace("<#>", $this->getDynamic(), $target[$key]));
         $this->response = $translate;
     }
