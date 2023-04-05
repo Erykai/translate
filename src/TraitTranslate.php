@@ -15,7 +15,7 @@ trait TraitTranslate
      */
     private function create(string $dir): void
     {
-        if (!is_dir($dir) && !mkdir($dir, 0755) && !is_dir($dir)) {
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
     }
@@ -27,16 +27,28 @@ trait TraitTranslate
     {
         $this->create($this->getPath());
         $this->create("{$this->getPath()}/{$this->getSource()}");
+        $this->create("{$this->getPath()}/{$this->getSource()}/public");
         $this->create("{$this->getPath()}/{$this->getTarget()}");
+        $this->create("{$this->getPath()}/{$this->getTarget()}/public");
     }
 
     /**
      * create files .translate
      */
-    protected function file(): void
+    protected function file(string $module = null): void
     {
-        $this->setSourceFile("{$this->getPath()}/{$this->getSource()}/{$this->getData()->file}.translate");
-        $this->setTargetFile("{$this->getPath()}/{$this->getTarget()}/{$this->getData()->file}.translate");
+        if ($module) {
+            $modulePath = dirname(__DIR__, 4)."/modules/{$module}/translate";
+            $this->create("{$modulePath}/{$this->getSource()}");
+            $this->create("{$modulePath}/{$this->getSource()}/public");
+            $this->create("{$modulePath}/{$this->getTarget()}");
+            $this->create("{$modulePath}/{$this->getTarget()}/public");
+            $this->setSourceFile("{$modulePath}/{$this->getSource()}/{$this->getData()->file}.translate");
+            $this->setTargetFile("{$modulePath}/{$this->getTarget()}/{$this->getData()->file}.translate");
+        } else {
+            $this->setSourceFile("{$this->getPath()}/{$this->getSource()}/{$this->getData()->file}.translate");
+            $this->setTargetFile("{$this->getPath()}/{$this->getTarget()}/{$this->getData()->file}.translate");
+        }
 
         if (!is_file($this->getSourceFile())) {
             file_put_contents($this->getSourceFile(), $this->getData()->text . PHP_EOL);

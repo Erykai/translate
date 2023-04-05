@@ -28,11 +28,11 @@ class Translate extends Resource
      * @return $this
      * detect language if not declare in target or const TRANSLATE_DEFAULT
      */
-    public function target(?string $lang = null): static
+    public function target(?string $lang = null, string $module = null): static
     {
         $this->lang($lang);
         $this->dir();
-        $this->file();
+        $this->file($module);
         $this->setResponse();
         return $this;
     }
