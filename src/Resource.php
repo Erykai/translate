@@ -47,9 +47,12 @@ abstract class Resource
     /**
      *
      */
-    public function __construct()
+    public function __construct(string $path = null)
     {
-        $this->setPath(dirname(__DIR__, 4)."/".TRANSLATE_PATH);
+        if(!$path){
+            $path = dirname(__DIR__, 4)."/".TRANSLATE_PATH;
+        }
+        $this->setPath($path);
         $this->setSource('en');
     }
 
