@@ -1,6 +1,6 @@
 {
   "name": "erykai/translate",
-  "description": "Component for all language translation, system messages and routes",
+  "description": "Component for all language translation, system messages and routes, and translation for laravel resources/lang/en",
   "minimum-stability": "stable",
   "license": "MIT",
   "authors": [

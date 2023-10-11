@@ -7,14 +7,14 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/erykai/translate.svg?style=flat-square)](https://scrutinizer-ci.com/g/erykai/translate)
 [![Total Downloads](https://img.shields.io/packagist/dt/erykai/translate.svg?style=flat-square)](https://packagist.org/packages/erykai/translate)
 
-Component for all language translation, system messages and routes
+Component for all language translation, system messages and routes, and resources lang laravel
 
 ## Installation
 
 Composer:
 
 ```bash
-"erykai/translate": "2.0.*"
+"erykai/translate": "3.0.*"
 ```
 
 Terminal
@@ -23,13 +23,14 @@ Terminal
 composer require erykai/translate
 ```
 
-Create config.php
+Create config.php para erykia
 
 ```php
-const TRANSLATE_PATH = 'translate';
-const TRANSLATE_DEFAULT = 'en';
-const TRANSLATE_API_URL = 'https://translate.erykia.com';
-
+const TRANSLATE_PATH = 'translate'; //Laravel 'php';
+const TRANSLATE_DEFAULT = 'en';  //example: pt_BR, es ...
+const TRANSLATE_API_URL = 'https://translate.erykia.com/api/v1';
+const TRANSLATE_EXT = 'translate'; // Laravel 'translate/resources/lang';
+const TRANSLATE_API_KEY = '';
 ```
 
 Translate define language ->target("es") ou ->target() default "en"
@@ -46,14 +47,30 @@ $data = new stdClass();
 $data->file = "route";
 $data->text = "/send/{id}/{slug}";
 $data->dynamic = "/{id}/{slug}";
-// send object
-// require file $data->file = "message" save file message.translate
-// require text language "en"
-// optional dynamic data not translate exemple:
-// email webav.com.br@gmail invalid
-// $data->dynamic = "webav.com.br@gmail"
-// translate pt-BR email webav.com.br@gmail invalido
-echo $translate->data($data)->target("es")->response()->translate;
+
+echo $translate->data($data)->target("pt_BR")->response()->translate;
+```
+
+Example translate resources lang laravel
+Copy the resources/lang/en/*.php folder with all files to the root, then just run php index.php
+```php
+use Erykai\Translate\Translate;
+
+require_once "config.php";
+require_once "vendor/autoload.php";
+$translate = new Translate();
+
+
+$dir = 'resources/lang/en/';
+$files = array_diff(scandir($dir), array('..', '.'));
+
+foreach ($files as $file) {
+    if (pathinfo($file, PATHINFO_EXTENSION) == 'php') {
+        $validationMessages = include $dir . $file;
+        $filenameWithoutExtension = pathinfo($file, PATHINFO_FILENAME);
+        $translate->processMessages($validationMessages, $translate, $filenameWithoutExtension,target:"pt_BR");
+    }
+}
 ```
 
 ## Contribution

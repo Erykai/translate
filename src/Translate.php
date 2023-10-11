@@ -2,6 +2,8 @@
 
 namespace Erykai\Translate;
 
+use stdClass;
+
 /**
  * Class translate remote all languages
  */
@@ -28,11 +30,11 @@ class Translate extends Resource
      * @return $this
      * detect language if not declare in target or const TRANSLATE_DEFAULT
      */
-    public function target(?string $lang = null, string $module = null): static
+    public function target(?string $lang = null, string $module = null, ?string $keyArray = null): static
     {
         $this->lang($lang);
-        $this->dir();
-        $this->file($module);
+        $this->dir($module);
+        $this->file($module, $keyArray);
         $this->setResponse();
         return $this;
     }
@@ -55,6 +57,29 @@ class Translate extends Resource
             $this->setTarget($lang);
         }
         return $this->getTarget();
+    }
+
+    /**
+     * @param $messages
+     * @param $translate
+     * @param $filenameWithoutExtension
+     * @param string $parentKey
+     * @param string $target
+     * @return void
+     */
+    public function processMessages($messages, $translate, $filenameWithoutExtension, string $parentKey = '', string $target = TRANSLATE_DEFAULT): void
+    {
+        foreach ($messages as $key => $message) {
+            $fullKey = $parentKey ? $parentKey . '.' . $key : $key;
+            if (is_array($message)) {
+                $this->processMessages($message, $translate, $filenameWithoutExtension, $fullKey, $target);
+            } else {
+                $data = new stdClass();
+                $data->file = $filenameWithoutExtension;
+                $data->text = $message;
+                $translate->data($data)->target($target, keyArray: $fullKey)->response();
+            }
+        }
     }
 
     /**
