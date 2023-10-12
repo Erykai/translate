@@ -2,10 +2,8 @@
 
 namespace Erykai\Translate;
 
-use JsonSchema\Exception\RuntimeException;
-
 /**
- * TraitTranslate
+ *
  */
 trait TraitTranslate
 {
@@ -16,7 +14,7 @@ trait TraitTranslate
     private function create(string $dir): void
     {
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
     }
 
@@ -38,7 +36,7 @@ trait TraitTranslate
     }
 
     /**
-     * create files
+     * create files .translate
      */
     protected function file(string $module = null, ?string $keyArray = null): void
     {
@@ -147,6 +145,18 @@ trait TraitTranslate
         return str_replace(['array (', ')'], ['[', ']'], $content);
     }
 
+    private function replacePlaceholders($template, $values): string
+    {
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+
+        foreach ($values as $value) {
+            $template = preg_replace('/<#>/', $value, $template, 1);
+        }
+        return $template;
+    }
+
     /**
      * @param string $text
      * @return mixed
@@ -174,9 +184,9 @@ trait TraitTranslate
         }
         $data = json_decode($response);
         if ($data->status === "success") {
-            return $data->translate;
+            return trim($this->replacePlaceholders($data->translate, $this->getDynamic()));
         }
-        return $text;
+        return trim($this->replacePlaceholders($text, $this->getDynamic()));
     }
 
 }

@@ -77,10 +77,17 @@ class Translate extends Resource
                 $data = new stdClass();
                 $data->file = $filenameWithoutExtension;
                 $data->text = $message;
+
+                preg_match_all('/:(\w+)/', $message, $matches);
+                if (!empty($matches[0])) {
+                    $data->dynamic = $matches[0];
+                }
+
                 $translate->data($data)->target($target, keyArray: $fullKey)->response();
             }
         }
     }
+
 
     /**
      * @return object

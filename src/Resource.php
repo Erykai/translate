@@ -16,9 +16,9 @@ abstract class Resource
      */
     private object $data;
     /**
-     * @var string
+     * @var string|array
      */
-    private string $dynamic;
+    private string|array $dynamic;
     /**
      * @var string
      */
@@ -75,17 +75,17 @@ abstract class Resource
 
 
     /**
-     * @return string
+     * @return string|array
      */
-    protected function getDynamic(): string
+    protected function getDynamic(): string|array
     {
         return $this->dynamic;
     }
 
     /**
-     * @param string $dynamic
+     * @param string|array $dynamic
      */
-    protected function setDynamic(string $dynamic): void
+    protected function setDynamic(string|array $dynamic): void
     {
         $this->dynamic = $dynamic;
     }
@@ -187,9 +187,7 @@ abstract class Resource
         $target =  file($this->getTargetFile());
         $key = array_search($this->getData()->text . PHP_EOL, $source, true);
         $translate = new stdClass();
-        $translate->translate = trim(str_replace("<#>", $this->getDynamic(), $target[$key]));
+        $translate->translate = $target[$key];
         $this->response = $translate;
     }
-
-
 }

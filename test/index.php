@@ -9,5 +9,5 @@ $translate = new Translate();
 $data = new stdClass();
 $data->file = "route";
 $data->text = "/send/{id}/{slug}"; // $data->text = "Hello"; if remove line 12
-$data->dynamic = "/{id}/{slug}"; // off dynamic remove line
+$data->dynamic = "/{id}/{slug}"; // off dynamic remove line string|array ['{id}','{slug}']
 $translate->data($data)->target("es")->response();

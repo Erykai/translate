@@ -39,16 +39,15 @@ Translate define language ->target("es") ou ->target() default "en"
 ```php
 use Erykai\Translate\Translate;
 
-require_once "test/config.php";
+require_once "config.php";
 require_once "vendor/autoload.php";
 
 $translate = new Translate();
 $data = new stdClass();
 $data->file = "route";
-$data->text = "/send/{id}/{slug}";
-$data->dynamic = "/{id}/{slug}";
-
-echo $translate->data($data)->target("pt_BR")->response()->translate;
+$data->text = "/send/{id}/{slug}"; // $data->text = "Hello"; if remove line 12
+$data->dynamic = "/{id}/{slug}"; // off dynamic remove line string|array ['{id}','{slug}']
+$translate->data($data)->target("es")->response();
 ```
 
 Example translate resources lang laravel
